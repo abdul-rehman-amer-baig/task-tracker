@@ -65,16 +65,15 @@ def delete_task(tasks: list[Task], args, data_file):
     return f"Task deleted successfully (ID: {args.id})"
 
 
-def list_tasks(tasks: list[Task], args):
-    filtered_tasks = []
-    if args.status == Status.DONE:
-        filtered_tasks = [task for task in tasks if task.status == Status.DONE]
-    elif args.status == Status.TODO:
-        filtered_tasks = [task for task in tasks if task.status == Status.TODO]
-    elif args.status == Status.IN_PROGRESS:
-        filtered_tasks = [task for task in tasks if task.status == Status.IN_PROGRESS]
-    else:
-        filtered_tasks = tasks
+def filter_task_by_status(tasks: list[Task], status: Status):
+    return [task for task in tasks if task.status == status]
 
-    for task in filtered_tasks:
+
+def display_tasks(tasks: list[Task]):
+    for task in tasks:
         print(task)
+
+
+def list_tasks(tasks: list[Task], args):
+    filtered_tasks = filter_task_by_status(tasks, args.status)
+    display_tasks(filtered_tasks)
