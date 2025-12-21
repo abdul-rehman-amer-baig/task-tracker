@@ -1,5 +1,6 @@
 from model import Status, Task
 from storage import save_json
+from tabulate import tabulate
 
 
 def add_task(tasks: list[Task], args, data_file):
@@ -70,10 +71,25 @@ def filter_task_by_status(tasks: list[Task], status: Status):
 
 
 def display_tasks(tasks: list[Task]):
+    if not tasks:
+        print("No tasks found.")
+        return
+
+    # Prepare data for tabulate
+    table_data = []
     for task in tasks:
-        print(task)
+        table_data.append(
+            [task.id, task.task, task.status, task.created_at, task.updated_at]
+        )
+
+    # Create table with headers
+    headers = ["ID", "Task", "Status", "Created At", "Updated At"]
+    print(tabulate(table_data, headers=headers, tablefmt="grid"))
 
 
 def list_tasks(tasks: list[Task], args):
-    filtered_tasks = filter_task_by_status(tasks, args.status)
+    if args.status:
+        filtered_tasks = filter_task_by_status(tasks, args.status)
+    else:
+        filtered_tasks = tasks
     display_tasks(filtered_tasks)

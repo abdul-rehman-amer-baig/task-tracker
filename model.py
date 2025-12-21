@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict, field
 import json
 from datetime import datetime
 from typing import Optional
+from tabulate import tabulate
 
 
 class Status:
@@ -30,7 +31,7 @@ class Task:
         return task_dict
 
     def __str__(self):
-        return json.dumps(self.model_dump(), indent=4)
+        return tabulate([self.model_dump()], headers="keys", tablefmt="grid")
 
     def __post_init__(self):
         if isinstance(self.created_at, str):
