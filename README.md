@@ -3,7 +3,7 @@
 A simple **Python CLI Task Tracker** that allows you to add, update, delete, and list tasks with different statuses. This project follows **SOLID principles** for clean and maintainable code, and comes with **unit tests** using `pytest`.
 
 This scope of this project will grow more as I am planning to integrate AI for agentic actions. Wish me luck up until I commit those changes.
-
+The scope of this project will expand as I'm planning to integrate AI for agentic actions. Up until I commit the changes for the new feature request, wish me luck
 ---
 
 ## Features
