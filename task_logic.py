@@ -1,95 +1,104 @@
 from model import Status, Task
 from storage import save_json
 from tabulate import tabulate
+from typing import List, Callable
 
 
-def add_task(tasks: list[Task], args, data_file):
-    tasks.append(
-        Task(
-            id=len(tasks) + 1 if tasks else 1,
-            task=args.task,
-        )
+# * CORE LOGIC FUNCTIONS
+def create_task(tasks: List[Task], task_text: str) -> Task:
+    new_task = Task(
+        id=len(tasks) + 1 if tasks else 1,
+        task=task_text,
     )
-
-    save_json(tasks, data_file)
-
-    print("Task added successfully")
-    return tasks[-1]
+    tasks.append(new_task)
+    return new_task
 
 
-def update_task_generic(tasks: list[Task], args, data_file, update_function):
-    id_exists = False
-    for i in range(len(tasks)):
-        if tasks[i].id == args.id:
-            id_exists = True
-            update_function(tasks[i])
-            tasks[i].mark_updated()
-            break
+def update_task_generic(
+    tasks: List[Task], task_id: int, update_fn: Callable[[Task], None]
+) -> Task:
+    for task in tasks:
+        if task.id == task_id:
+            update_fn(task)
+            task.mark_updated()
+            return task
 
-    if not id_exists:
-        raise ValueError(f"Task with ID {args.id} not found")
-
-    save_json(tasks, data_file)
-    return tasks[args.id - 1]
+    raise ValueError(f"Task with ID {task_id} not found")
 
 
-def update_task(tasks: list[Task], args, data_file):
-    return update_task_generic(
-        tasks, args, data_file, lambda task: setattr(task, "task", args.task)
-    )
+def delete_task_by_id(tasks: List[Task], task_id: int) -> Task:
+    for task in tasks:
+        if task.id == task_id:
+            tasks.pop(task_id - 1)
+            return task
 
-
-def mark_in_progress_task(tasks: list[Task], args, data_file):
-    return update_task_generic(
-        tasks, args, data_file, lambda task: setattr(task, "status", Status.IN_PROGRESS)
-    )
-
-
-def mark_done_task(tasks: list[Task], args, data_file):
-    return update_task_generic(
-        tasks, args, data_file, lambda task: setattr(task, "status", Status.DONE)
-    )
-
-
-def delete_task(tasks: list[Task], args, data_file):
-    id_exists = False
-    for i in range(len(tasks)):
-        if tasks[i].id == args.id:
-            id_exists = True
-            tasks.pop(i)
-            break
-
-    if not id_exists:
-        raise ValueError(f"Task with ID {args.id} not found")
-
-    save_json(tasks, data_file)
-    return f"Task deleted successfully (ID: {args.id})"
+    raise ValueError(f"Task with ID {task_id} not found")
 
 
 def filter_task_by_status(tasks: list[Task], status: Status):
     return [task for task in tasks if task.status == status]
 
 
-def display_tasks(tasks: list[Task]):
-    if not tasks:
-        print("No tasks found.")
-        return
-
-    # Prepare data for tabulate
-    table_data = []
-    for task in tasks:
-        table_data.append(
-            [task.id, task.task, task.status, task.created_at, task.updated_at]
-        )
-
-    # Create table with headers
-    headers = ["ID", "Task", "Status", "Created At", "Updated At"]
-    print(tabulate(table_data, headers=headers, tablefmt="grid"))
+# * APLICATION SERVICES (ORCHESTRATION)
+def add_task(
+    tasks: list[Task], task_text: str, save_fn: Callable[[List[Task]], None]
+) -> Task:
+    task = create_task(tasks, task_text)
+    save_fn(tasks)
+    return task
 
 
-def list_tasks(tasks: list[Task], args):
-    if args.status:
-        filtered_tasks = filter_task_by_status(tasks, args.status)
-    else:
-        filtered_tasks = tasks
-    display_tasks(filtered_tasks)
+def update_task(
+    tasks: list[Task],
+    task_id: int,
+    task_text: str,
+    save_fn: Callable[[List[Task]], None],
+) -> Task:
+    task = update_task_generic(
+        tasks,
+        task_id,
+        lambda task: setattr(task, "task", task_text),
+    )
+    save_fn(tasks)
+    return task
+
+
+def mark_in_progress_task(
+    tasks: list[Task], task_id: int, save_fn: Callable[[List[Task]], None]
+) -> Task:
+    task = update_task_generic(
+        tasks,
+        task_id,
+        lambda task: setattr(task, "status", Status.IN_PROGRESS),
+    )
+    save_fn(tasks)
+    return task
+
+
+def mark_done_task(
+    tasks: list[Task], task_id: int, save_fn: Callable[[List[Task]], None]
+) -> Task:
+    task = update_task_generic(
+        tasks,
+        task_id,
+        lambda task: setattr(task, "status", Status.DONE),
+    )
+    save_fn(tasks)
+    return task
+
+
+def delete_task(
+    tasks: list[Task], task_id: int, save_fn: Callable[[List[Task]], None]
+) -> Task:
+    task = delete_task_by_id(tasks, task_id)
+    save_fn(tasks)
+    return task
+
+
+def list_tasks(
+    tasks: List[Task],
+    status: Status = Status.TODO,
+) -> List[Task]:
+    filtered_tasks = filter_task_by_status(tasks, status)
+
+    return filtered_tasks
