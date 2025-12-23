@@ -1,6 +1,4 @@
 from model import Status, Task
-from storage import save_json
-from tabulate import tabulate
 from typing import List, Callable
 
 
