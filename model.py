@@ -11,6 +11,15 @@ class Status:
     DONE = "DONE"
 
 
+class CommandType:
+    ADD = "add"
+    UPDATE = "update"
+    DELETE = "delete"
+    MARK_DONE = "mark-done"
+    MARK_IN_PROGRESS = "mark-in-progress"
+    LIST = "list"
+
+
 @dataclass
 class Task:
     id: int

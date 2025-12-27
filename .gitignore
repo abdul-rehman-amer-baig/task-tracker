@@ -3,3 +3,5 @@ __pycache__/
 tasks.json
 venv/
 .pytest_cache/
+.env
+conversation_history.json

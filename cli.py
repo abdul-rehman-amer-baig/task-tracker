@@ -6,6 +6,13 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Task Tracker CLI")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    ai_parser = subparsers.add_parser(
+        "ai", help="Use AI to perform a task (e.g., 'mark my first task as done')"
+    )
+    ai_parser.add_argument(
+        "text", type=str, help="Human instruction for AI to interpret"
+    )
+
     add_parser = subparsers.add_parser("add", help="Add a new task")
     add_parser.add_argument("task", type=str, help="The task to add")
 

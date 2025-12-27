@@ -95,8 +95,10 @@ def delete_task(
 
 def list_tasks(
     tasks: List[Task],
-    status: Status = Status.TODO,
+    status: Status = None,
 ) -> List[Task]:
+    if status is None:
+        return tasks
     filtered_tasks = filter_task_by_status(tasks, status)
 
     return filtered_tasks
