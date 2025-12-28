@@ -10,7 +10,7 @@ load_dotenv()
 
 class OpenRouterProvider(AIProvider):
     def __init__(self):
-        self.api_key = os.getenv("OPENROUTER_API_KEY")
+        self.api_key =        os.getenv("OPENROUTER_API_KEY")
         self.url = os.getenv(
             "OPENROUTER_URL", "https://openrouter.ai/api/v1/chat/completions"
         )
