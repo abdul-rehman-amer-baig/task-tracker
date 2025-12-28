@@ -41,6 +41,7 @@ jobs:
         run: |
           # Check all Python files for linting/formatting issues
           ruff check .
+          ruff format --check --diff
 
       # -------------------------
       # Run tests
