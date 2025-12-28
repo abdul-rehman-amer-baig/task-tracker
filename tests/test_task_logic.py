@@ -14,7 +14,7 @@ from task_logic import (
 # Dummy save function
 # ------------------------
 def dummy_save(tasks):
-    pass 
+    pass
 
 
 # ------------------------
