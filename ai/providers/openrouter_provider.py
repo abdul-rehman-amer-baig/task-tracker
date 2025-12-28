@@ -3,6 +3,7 @@ import requests
 from typing import Optional, List, Dict
 from dotenv import load_dotenv
 from .base_provider import AIProvider
+# from json import dumps
 
 load_dotenv()
 
@@ -48,5 +49,6 @@ class OpenRouterProvider(AIProvider):
         response = requests.post(self.url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
         response_data = response.json()
+        # print (dumps(response_data, indent=2))
         content = response_data["choices"][0]["message"]["content"]
         return content.strip() if content else ""
