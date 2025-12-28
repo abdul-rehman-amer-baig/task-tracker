@@ -1,6 +1,18 @@
 from typing import Optional, List, Dict
+from dataclasses import fields
 from .provider_factory import AIProviderFactory
 from .providers.base_provider import AIProvider
+from .prompt_loader import load_prompt
+from .schema import (
+    AddCommand,
+    UpdateCommand,
+    DeleteCommand,
+    MarkDoneCommand,
+    MarkInProgressCommand,
+    ListCommand,
+    ConversationResponse,
+    AIResponse,
+)
 import json
 import re
 
@@ -10,7 +22,7 @@ def parse_human_input(
     tasks: list = None,
     provider: Optional[AIProvider] = None,
     conversation_history: Optional[List[Dict]] = None,
-) -> dict:
+) -> AIResponse:
     tasks_data = ""
     if tasks:
         tasks_list = [
@@ -21,48 +33,20 @@ def parse_human_input(
                 "created_at": task.created_at.isoformat()
                 if hasattr(task.created_at, "isoformat")
                 else str(task.created_at),
+                "updated_at": task.updated_at.isoformat()
+                if hasattr(task.updated_at, "isoformat")
+                else str(task.updated_at),
             }
             for task in tasks
         ]
         tasks_data = json.dumps(tasks_list, indent=2)
 
-    system_prompt = """You are a TODO task manager. Convert user requests to JSON commands.
+    system_prompt = load_prompt("command_parser.prompt")
 
-        Response format (JSON only, no extra text):
-        - Commands: {{"type": "command", "command": "<cmd>", "id": <id>, "task": "<text>", "status": "<status>", "message": "<optional>"}}
-        - Questions: {{"type": "conversation", "message": "<text>"}}
-
-        Commands: "add", "update", "delete", "mark-done", "mark-in-progress", "list"
-        Statuses: "TODO", "IN_PROGRESS", "DONE", null
-
-        CRITICAL - Always include "status" field:
-        - For "list" command: ALWAYS include "status" field
-          * "status": null → show ALL tasks (use when user says "list tasks", "show tasks", "display tasks" without specifying status)
-          * "status": "TODO" → show only TODO tasks
-          * "status": "IN_PROGRESS" → show only IN_PROGRESS tasks
-          * "status": "DONE" → show only DONE tasks
-        - For other commands: include "status" only if relevant (usually not needed)
-
-        IMPORTANT:
-        - Only include "message" field if user EXPLICITLY asks a question in the same request
-          Example: "what's my name and show tasks" → {{"type": "command", "command": "list", "status": null, "message": "Your name is ARA. Here are your tasks:"}}
-          Example: "display tasks" → {{"type": "command", "command": "list", "status": null}} (NO message field)
-        - Do NOT add information to messages just because it's in conversation history - only if user asks for it NOW
-        - "update" = change task TEXT only. "update status" → use "mark-in-progress" or "mark-done"
-        - "find/show/list" → use "list" command with "status": null (never return task data in conversation)
-        - "most recent/last" → task with LATEST created_at timestamp
-        - Missing info → ask follow-up question
-        - Return ONLY valid JSON, no text before or after"""
-
-    context_prompt = (
-        f"""Current tasks:
-        {tasks_data}
-
-        Use this to: find IDs by description, match task names, or identify most recent task.
-        Most recent = task with the LATEST created_at timestamp (chronologically newest/highest value)."""
-        if tasks_data
-        else ""
-    )
+    context_prompt = ""
+    if tasks_data:
+        context_template = load_prompt("task_context.prompt")
+        context_prompt = context_template.format(tasks_data=tasks_data)
 
     user_prompt = f'User: "{human_text}"'
 
@@ -103,6 +87,46 @@ def parse_human_input(
     return _validate_and_normalize_response(parsed)
 
 
+def _validate_and_normalize_response(parsed: dict) -> AIResponse:
+    response_type = parsed.get("type")
+
+    if response_type == "conversation":
+        return _create_dataclass(ConversationResponse, parsed)
+
+    if response_type != "command":
+        if "command" in parsed:
+            parsed["type"] = "command"
+        else:
+            raise ValueError(
+                "Response must have either 'type': 'command' or 'type': 'conversation'"
+            )
+
+    cmd = parsed.get("command")
+    if not cmd:
+        raise ValueError("Command type must include 'command' field")
+
+    if cmd == "add":
+        return _create_dataclass(AddCommand, parsed)
+    elif cmd == "update":
+        return _create_dataclass(UpdateCommand, parsed)
+    elif cmd == "delete":
+        return _create_dataclass(DeleteCommand, parsed)
+    elif cmd == "mark-done":
+        return _create_dataclass(MarkDoneCommand, parsed)
+    elif cmd == "mark-in-progress":
+        return _create_dataclass(MarkInProgressCommand, parsed)
+    elif cmd == "list":
+        return _create_dataclass(ListCommand, parsed)
+    else:
+        raise ValueError(f"Unknown command: {cmd}")
+
+
+def _create_dataclass(dataclass_class, data: dict):
+    field_names = {f.name for f in fields(dataclass_class)}
+    filtered_data = {k: v for k, v in data.items() if k in field_names}
+    return dataclass_class(**filtered_data)
+
+
 def _extract_json(text: str) -> str:
     json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
     if json_match:
@@ -125,27 +149,3 @@ def _extract_json(text: str) -> str:
                 return text[json_start : i + 1].strip()
 
     return text[json_start:].strip()
-
-
-def _validate_and_normalize_response(parsed: dict) -> dict:
-    if not isinstance(parsed, dict):
-        raise ValueError("Response must be a JSON object")
-
-    response_type = parsed.get("type")
-
-    if response_type == "command":
-        if "command" not in parsed:
-            raise ValueError("Command type must include 'command' field")
-        return parsed
-    elif response_type == "conversation":
-        if "message" not in parsed:
-            raise ValueError("Conversation type must include 'message' field")
-        return parsed
-    else:
-        if "command" in parsed:
-            parsed["type"] = "command"
-            return parsed
-        else:
-            raise ValueError(
-                "Response must have either 'type': 'command' or 'type': 'conversation'"
-            )

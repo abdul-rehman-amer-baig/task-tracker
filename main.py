@@ -82,8 +82,8 @@ if __name__ == "__main__":
                 args.text, tasks, conversation_history=conversation_history
             )
 
-            if response.get("type") == "conversation":
-                message = response.get("message", "I'm here to help with your tasks!")
+            if response.type == "conversation":
+                message = response.message
                 print(message)
                 if history_enabled:
                     conversation_history = add_to_history(
@@ -94,11 +94,8 @@ if __name__ == "__main__":
                     )
                     save_conversation_history(conversation_history)
             else:
-                if response.get("type") == "command":
-                    command_dict = response
-                else:
-                    command_dict = response
-
+                # Convert Pydantic model to dict for execute_command
+                command_dict = response.model_dump()
                 execute_command(command_dict, tasks, DATA_FILE)
 
                 if history_enabled:

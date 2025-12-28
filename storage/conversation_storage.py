@@ -22,13 +22,17 @@ def add_to_history(
     history: List[Dict],
     role: str,
     content: str,
+    max_history: int = 20,
 ) -> List[Dict]:
     history.append({"role": role, "content": content})
 
-    system_messages = [msg for msg in history if msg.get("role") == "system"]
-    other_messages = [msg for msg in history if msg.get("role") != "system"]
+    if len(history) > max_history:
+        system_messages = [msg for msg in history if msg.get("role") == "system"]
+        other_messages = [msg for msg in history if msg.get("role") != "system"]
 
-    history = system_messages + other_messages
+        other_messages = other_messages[-max_history:]
+
+        history = system_messages + other_messages
 
     return history
 
