@@ -28,12 +28,26 @@ class PythonAgent(BaseAgent):
     def _extract_code(self, text: str) -> str:
         python_match = re.search(r"```(?:python)?\s*(.+?)\s*```", text, re.DOTALL)
         if python_match:
-            return python_match.group(1).strip()
+            code = python_match.group(1).strip()
+            if code:
+                return code
 
         lines = text.split("\n")
+        code_lines = []
+        skip_prefixes = ["Question:", "# Question", "Tasks data:", "Return"]
+
         for line in lines:
             line = line.strip()
-            if line and not line.startswith("#") and not line.startswith("Question:"):
-                return line.strip()
+            if not line:
+                continue
+            if line.startswith("#") and not code_lines:
+                continue
+            if any(line.startswith(prefix) for prefix in skip_prefixes):
+                continue
+            if line and (not line.startswith("#") or code_lines):
+                code_lines.append(line)
+
+        if code_lines:
+            return "\n".join(code_lines).strip()
 
         return text.strip()
