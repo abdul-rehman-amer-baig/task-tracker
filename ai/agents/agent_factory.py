@@ -1,59 +1,28 @@
-from typing import Optional, List, Dict
+"""Agent Factory - Creates and manages agent instances"""
+
+from typing import Optional
 from ai.providers.base_provider import AIProvider
-from ai.schema.intent_schemas import IntentResponse
-from ai.schema.command_schemas import AIResponse, ConversationResponse
-from ai.validator import safe_evaluate, ReadOnlyValidationError
-from ai.agents.conversation_agent import reply
-from ai.agents.python_agent import generate_code
-from ai.agents.command_agent import handle_command
+from ai.agents.master_agent import MasterAgent
+from ai.agents.command_agent import CommandAgent
+from ai.agents.conversation_agent import ConversationAgent
+from ai.agents.python_agent import PythonAgent
 
 
-def route_to_agent(
-    intent: IntentResponse,
-    human_text: str,
-    tasks: list = None,
-    provider: Optional[AIProvider] = None,
-    conversation_history: Optional[List[Dict]] = None,
-) -> AIResponse:
-    if intent.type == "command":
-        result = handle_command(
-            human_text,
-            provider,
-        )
-        print(result)
-        return result
-    elif intent.type == "computation":
-        tasks_data = []
-        if tasks:
-            tasks_data = [
-                {
-                    "id": task.id,
-                    "task": task.task,
-                    "status": task.status
-                    if isinstance(task.status, str)
-                    else str(task.status),
-                    "created_at": task.created_at.isoformat()
-                    if hasattr(task.created_at, "isoformat")
-                    else str(task.created_at),
-                    "updated_at": task.updated_at.isoformat()
-                    if hasattr(task.updated_at, "isoformat")
-                    else str(task.updated_at),
-                }
-                for task in tasks
-            ]
+class AgentFactory:
+    @staticmethod
+    def create_master_agent(provider: Optional[AIProvider] = None) -> MasterAgent:
+        return MasterAgent(provider=provider)
 
-        code = generate_code(intent.question, tasks_data, provider)
+    @staticmethod
+    def create_command_agent(provider: Optional[AIProvider] = None) -> CommandAgent:
+        return CommandAgent(provider=provider)
 
-        try:
-            result = safe_evaluate(code, tasks_data)
-            print("The python code is: ", code)
-            message = f"The answer is: {result}"
-        except ReadOnlyValidationError as e:
-            message = f"Error: Code validation failed - {e}"
-        except Exception as e:
-            message = f"Error executing code: {e}"
+    @staticmethod
+    def create_conversation_agent(
+        provider: Optional[AIProvider] = None,
+    ) -> ConversationAgent:
+        return ConversationAgent(provider=provider)
 
-        return ConversationResponse(type="conversation", message=message)
-
-    else:  # conversation
-        return reply(human_text, provider, conversation_history)
+    @staticmethod
+    def create_python_agent(provider: Optional[AIProvider] = None) -> PythonAgent:
+        return PythonAgent(provider=provider)

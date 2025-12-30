@@ -1,74 +1,64 @@
-from typing import Optional
 import json
 import re
-from ai.providers.provider_factory import AIProviderFactory
-from ai.providers.base_provider import AIProvider
-from ai.prompt_loader import load_prompt
 from ai.schema.intent_schemas import IntentResponse
+from ai.agents.base_agent import BaseAgent
 
 
-def classify_intent(
-    human_text: str,
-    provider: Optional[AIProvider] = None,
-) -> IntentResponse:
-    system_prompt = load_prompt("master_agent.prompt")
-    user_prompt = f'User: "{human_text}"'
+class MasterAgent(BaseAgent):
+    @property
+    def prompt_name(self) -> str:
+        return "master_agent.prompt"
 
-    if provider is None:
-        provider = AIProviderFactory.get_default_provider()
+    def classify_intent(self, human_text: str) -> IntentResponse:
+        user_prompt = f'User: "{human_text}"'
+        response = self._call_provider(user_prompt, conversation_history=None)
 
-    response = provider.ask(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        conversation_history=None,
-    )
+        json_text = self._extract_json(response)
 
-    response = response.strip() if response else ""
+        try:
+            parsed = json.loads(json_text)
+        except json.JSONDecodeError as e:
+            raise RuntimeError(
+                f"Master agent returned invalid JSON: {repr(response[:100])}. Error: {e}"
+            )
 
-    if not response:
-        raise RuntimeError("Master agent returned an empty response")
+        return self.process_response(response, human_text=human_text, parsed=parsed)
 
-    json_text = _extract_json(response)
+    def process_response(self, response: str, **kwargs) -> IntentResponse:
+        parsed = kwargs.get("parsed")
+        human_text = kwargs.get("human_text", "")
 
-    try:
-        parsed = json.loads(json_text)
-    except json.JSONDecodeError as e:
-        raise RuntimeError(
-            f"Master agent returned invalid JSON: {repr(response[:100])}. Error: {e}"
-        )
+        intent_type = parsed.get("type")
+        if intent_type not in ("command", "computation", "conversation"):
+            raise ValueError(
+                f"Invalid intent type: {intent_type}. Must be 'command', 'computation', or 'conversation'"
+            )
 
-    intent_type = parsed.get("type")
-    if intent_type not in ("command", "computation", "conversation"):
-        raise ValueError(
-            f"Invalid intent type: {intent_type}. Must be 'command', 'computation', or 'conversation'"
-        )
+        if intent_type == "computation":
+            return IntentResponse(
+                type="computation", question=parsed.get("question", human_text)
+            )
+        elif intent_type == "command":
+            return IntentResponse(type="command", command=parsed.get("command"))
+        else:
+            return IntentResponse(type="conversation")
 
-    if intent_type == "computation":
-        return IntentResponse(
-            type="computation", question=parsed.get("question", human_text)
-        )
-    elif intent_type == "command":
-        return IntentResponse(type="command", command=parsed.get("command"))
-    else:
-        return IntentResponse(type="conversation")
+    def _extract_json(self, text: str) -> str:
+        json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+        if json_match:
+            return json_match.group(1).strip()
 
+        json_start = text.find('{"type"')
+        if json_start == -1:
+            return text.strip()
 
-def _extract_json(text: str) -> str:
-    json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
-    if json_match:
-        return json_match.group(1).strip()
+        brace_count = 0
+        for i in range(json_start, len(text)):
+            if text[i] == "{":
+                brace_count += 1
+            elif text[i] == "}":
+                brace_count -= 1
+                if brace_count == 0:
+                    return text[json_start : i + 1].strip()
 
-    json_start = text.find('{"type"')
-    if json_start == -1:
-        return text.strip()
-
-    brace_count = 0
-    for i in range(json_start, len(text)):
-        if text[i] == "{":
-            brace_count += 1
-        elif text[i] == "}":
-            brace_count -= 1
-            if brace_count == 0:
-                return text[json_start : i + 1].strip()
-
-    return text[json_start:].strip()
+        return text[json_start:].strip()

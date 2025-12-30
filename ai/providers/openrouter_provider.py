@@ -49,6 +49,19 @@ class OpenRouterProvider(AIProvider):
         response = requests.post(self.url, json=payload, headers=headers, timeout=30)
         response.raise_for_status()
         response_data = response.json()
-        # print (dumps(response_data, indent=2))
-        content = response_data["choices"][0]["message"]["content"]
-        return content.strip() if content else ""
+
+        if "choices" not in response_data or not response_data["choices"]:
+            raise RuntimeError(
+                f"OpenRouter API returned no choices. Response: {response_data}"
+            )
+
+        content = response_data["choices"][0]["message"].get("content", "")
+
+        if not content or not content.strip():
+            raise RuntimeError(
+                f"OpenRouter API returned empty content. "
+                f"Model: {self.model}, "
+                f"Response structure: {list(response_data.keys())}"
+            )
+
+        return content.strip()

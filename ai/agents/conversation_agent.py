@@ -1,47 +1,39 @@
 from typing import Optional, List, Dict
-from ai.providers.provider_factory import AIProviderFactory
-from ai.providers.base_provider import AIProvider
-from ai.prompt_loader import load_prompt
 from ai.schema.command_schemas import ConversationResponse
+from ai.agents.base_agent import BaseAgent
 
 
-def reply(
-    human_text: str,
-    provider: Optional[AIProvider] = None,
-    conversation_history: Optional[List[Dict]] = None,
-) -> ConversationResponse:
-    system_prompt = load_prompt("conversation_agent.prompt")
-    user_prompt = f'User: "{human_text}"'
+class ConversationAgent(BaseAgent):
+    @property
+    def prompt_name(self) -> str:
+        return "conversation_agent.prompt"
 
-    if provider is None:
-        provider = AIProviderFactory.get_default_provider()
+    def reply(
+        self,
+        human_text: str,
+        conversation_history: Optional[List[Dict]] = None,
+    ) -> ConversationResponse:
+        user_prompt = f'User: "{human_text}"'
+        response = self._call_provider(
+            user_prompt, conversation_history=conversation_history
+        )
 
-    response = provider.ask(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        conversation_history=conversation_history,
-    )
+        return self.process_response(response)
 
-    response = response.strip() if response else ""
+    def process_response(self, response: str, **kwargs) -> ConversationResponse:
+        message = self._clean_response(response)
+        return ConversationResponse(type="conversation", message=message)
 
-    if not response:
-        raise RuntimeError("Conversation agent returned an empty response")
-
-    message = _clean_response(response)
-
-    return ConversationResponse(type="conversation", message=message)
-
-
-def _clean_response(text: str) -> str:
-    if "```" in text:
-        lines = text.split("\n")
-        cleaned = []
-        in_code = False
-        for line in lines:
-            if line.strip().startswith("```"):
-                in_code = not in_code
-                continue
-            if not in_code:
-                cleaned.append(line)
-        return "\n".join(cleaned).strip()
-    return text.strip()
+    def _clean_response(self, text: str) -> str:
+        if "```" in text:
+            lines = text.split("\n")
+            cleaned = []
+            in_code = False
+            for line in lines:
+                if line.strip().startswith("```"):
+                    in_code = not in_code
+                    continue
+                if not in_code:
+                    cleaned.append(line)
+            return "\n".join(cleaned).strip()
+        return text.strip()

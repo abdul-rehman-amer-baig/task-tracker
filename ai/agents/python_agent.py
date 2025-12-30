@@ -1,50 +1,40 @@
 import re
 import json
 from typing import Optional, List, Dict, Union
-from ai.providers.provider_factory import AIProviderFactory
 from ai.providers.base_provider import AIProvider
-from ai.prompt_loader import load_prompt
+from ai.agents.base_agent import BaseAgent
 
 
-def generate_code(
-    question: str,
-    tasks_data: Union[str, List[Dict]],
-    provider: Optional[AIProvider] = None,
-) -> str:
-    if isinstance(tasks_data, (list, dict)):
-        tasks_data = json.dumps(tasks_data, indent=2)
+class PythonAgent(BaseAgent):
+    @property
+    def prompt_name(self) -> str:
+        return "python_agent.prompt"
 
-    system_prompt = load_prompt("python_agent.prompt")
-    user_prompt = f"Question: {question}\n\nTasks data:\n{tasks_data}\n\nReturn ONLY the Python code:"
+    def generate_code(
+        self,
+        question: str,
+        tasks_data: Union[str, List[Dict]],
+    ) -> str:
+        if isinstance(tasks_data, (list, dict)):
+            tasks_data = json.dumps(tasks_data, indent=2)
 
-    if provider is None:
-        provider = AIProviderFactory.get_default_provider()
+        user_prompt = f"Question: {question}\n\nTasks data:\n{tasks_data}\n\nReturn ONLY the Python code:"
+        response = self._call_provider(user_prompt, conversation_history=None)
 
-    response = provider.ask(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        conversation_history=None,
-    )
+        return self.process_response(response)
 
-    response = response.strip() if response else ""
+    def process_response(self, response: str, **kwargs) -> str:
+        return self._extract_code(response)
 
-    if not response:
-        raise RuntimeError("Python agent returned an empty response")
+    def _extract_code(self, text: str) -> str:
+        python_match = re.search(r"```(?:python)?\s*(.+?)\s*```", text, re.DOTALL)
+        if python_match:
+            return python_match.group(1).strip()
 
-    code = _extract_code(response)
+        lines = text.split("\n")
+        for line in lines:
+            line = line.strip()
+            if line and not line.startswith("#") and not line.startswith("Question:"):
+                return line.strip()
 
-    return code
-
-
-def _extract_code(text: str) -> str:
-    python_match = re.search(r"```(?:python)?\s*(.+?)\s*```", text, re.DOTALL)
-    if python_match:
-        return python_match.group(1).strip()
-
-    lines = text.split("\n")
-    for line in lines:
-        line = line.strip()
-        if line and not line.startswith("#") and not line.startswith("Question:"):
-            return line.strip()
-
-    return text.strip()
+        return text.strip()
