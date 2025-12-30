@@ -1,7 +1,6 @@
 import re
 import json
-from typing import Optional, List, Dict, Union
-from ai.providers.base_provider import AIProvider
+from typing import List, Dict, Union
 from ai.agents.base_agent import BaseAgent
 
 
