@@ -1,5 +1,0 @@
-Current tasks:
-{tasks_data}
-
-Use to: find IDs by description, match names, identify most recent task.
-Most recent = task with HIGHEST created_at timestamp (chronologically newest).

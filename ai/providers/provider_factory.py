@@ -1,7 +1,7 @@
 import os
 from typing import Optional
-from .providers.base_provider import AIProvider
-from .providers.openrouter_provider import OpenRouterProvider
+from ai.providers.base_provider import AIProvider
+from ai.providers.openrouter_provider import OpenRouterProvider
 
 
 class AIProviderFactory:
