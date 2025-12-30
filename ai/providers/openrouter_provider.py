@@ -2,7 +2,7 @@ import os
 import requests
 from typing import Optional, List, Dict
 from dotenv import load_dotenv
-from .base_provider import AIProvider
+from ai.providers.base_provider import AIProvider
 # from json import dumps
 
 load_dotenv()

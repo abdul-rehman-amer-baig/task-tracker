@@ -1,4 +1,4 @@
-from .command_schemas import (
+from ai.schema.command_schemas import (
     AddCommand,
     UpdateCommand,
     DeleteCommand,
