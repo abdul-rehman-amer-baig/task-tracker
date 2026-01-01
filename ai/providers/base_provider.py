@@ -8,7 +8,6 @@ class AIProvider(ABC):
         self,
         system_prompt: Optional[str] = None,
         user_prompt: Optional[str] = None,
-        prompt: Optional[str] = None,
         conversation_history: Optional[List[Dict]] = None,
     ) -> str:
         pass

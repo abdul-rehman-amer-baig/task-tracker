@@ -25,10 +25,9 @@ def update_task_generic(
 
 
 def delete_task_by_id(tasks: List[Task], task_id: int) -> Task:
-    for task in tasks:
+    for i, task in enumerate(tasks):
         if task.id == task_id:
-            tasks.pop(task_id - 1)
-            return task
+            return tasks.pop(i)
 
     raise ValueError(f"Task with ID {task_id} not found")
 
