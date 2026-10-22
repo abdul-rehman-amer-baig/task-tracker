@@ -1,5 +1,3 @@
-Who Am I? Click to View My Resume → https://abdul-rehman-amer-baig.github.io/resume.pdf
-
 # Description
 
 This is a python CLI based task-tracker that allows you to perform CRUD operations on tasks. The codebase is aligned with SOLID, DRY principles and it also comes with unit testing via `pytest`. Not only that, I have amplified the scope of it by integrating an AI to perform CRUD on the behalf of user’s plain English.
@@ -178,10 +176,4 @@ pytest -v
 
 ---
 
-If you find any bugs, I’ll be monitoring [GitHub Issues](https://github.com/abdul-rehman-amer-baig/task-tracker/issues). Feel free to report them.
-
 To learn more about the project details, check out the [roadmap](https://roadmap.sh/projects/task-tracker).
-
-Want to know more about my professional experience and background? Click here to view the details: https://abdul-rehman-amer-baig.github.io/resume.pdf
-
----
