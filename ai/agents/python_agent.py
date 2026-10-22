@@ -1,6 +1,8 @@
-import re
+from __future__ import annotations
+
 import json
-from typing import List, Dict, Union
+import re
+
 from ai.agents.base_agent import BaseAgent
 
 
@@ -12,7 +14,7 @@ class PythonAgent(BaseAgent):
     def generate_code(
         self,
         question: str,
-        tasks_data: Union[str, List[Dict]],
+        tasks_data: str | list[dict],
     ) -> str:
         if isinstance(tasks_data, (list, dict)):
             tasks_data = json.dumps(tasks_data, indent=2)

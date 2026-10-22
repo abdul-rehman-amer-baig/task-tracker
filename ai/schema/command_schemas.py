@@ -1,5 +1,7 @@
-from dataclasses import dataclass, asdict
-from typing import Optional, Literal, Union
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from typing import Literal, Union
 
 
 @dataclass
@@ -7,7 +9,7 @@ class AddCommand:
     type: Literal["command"]
     command: Literal["add"]
     task: str
-    message: Optional[str] = None
+    message: str | None = None
 
     def __post_init__(self):
         if self.type != "command":
@@ -27,7 +29,7 @@ class UpdateCommand:
     command: Literal["update"]
     id: int
     task: str
-    message: Optional[str] = None
+    message: str | None = None
 
     def __post_init__(self):
         if self.type != "command":
@@ -48,7 +50,7 @@ class DeleteCommand:
     type: Literal["command"]
     command: Literal["delete"]
     id: int
-    message: Optional[str] = None
+    message: str | None = None
 
     def __post_init__(self):
         if self.type != "command":
@@ -67,7 +69,7 @@ class MarkDoneCommand:
     type: Literal["command"]
     command: Literal["mark-done"]
     id: int
-    message: Optional[str] = None
+    message: str | None = None
 
     def __post_init__(self):
         if self.type != "command":
@@ -86,7 +88,7 @@ class MarkInProgressCommand:
     type: Literal["command"]
     command: Literal["mark-in-progress"]
     id: int
-    message: Optional[str] = None
+    message: str | None = None
 
     def __post_init__(self):
         if self.type != "command":
@@ -104,8 +106,8 @@ class MarkInProgressCommand:
 class ListCommand:
     type: Literal["command"]
     command: Literal["list"]
-    status: Optional[Literal["TODO", "IN_PROGRESS", "DONE"]] = None
-    message: Optional[str] = None
+    status: Literal["TODO", "IN_PROGRESS", "DONE"] | None = None
+    message: str | None = None
 
     def __post_init__(self):
         if self.type != "command":

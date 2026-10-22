@@ -1,6 +1,7 @@
-from typing import Optional, List, Dict
-from ai.schema.command_schemas import ConversationResponse
+from __future__ import annotations
+
 from ai.agents.base_agent import BaseAgent
+from ai.schema.command_schemas import ConversationResponse
 
 
 class ConversationAgent(BaseAgent):
@@ -11,7 +12,7 @@ class ConversationAgent(BaseAgent):
     def reply(
         self,
         human_text: str,
-        conversation_history: Optional[List[Dict]] = None,
+        conversation_history: list[dict] | None = None,
     ) -> ConversationResponse:
         user_prompt = f'User: "{human_text}"'
         response = self._call_provider(

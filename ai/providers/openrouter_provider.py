@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import os
+
 import requests
-from typing import Optional, List, Dict
 from dotenv import load_dotenv
+
 from ai.providers.base_provider import AIProvider
 
 load_dotenv()
@@ -24,9 +27,9 @@ class OpenRouterProvider(AIProvider):
 
     def ask(
         self,
-        system_prompt: Optional[str] = None,
-        user_prompt: Optional[str] = None,
-        conversation_history: Optional[List[Dict]] = None,
+        system_prompt: str | None = None,
+        user_prompt: str | None = None,
+        conversation_history: list[dict] | None = None,
     ) -> str:
         headers = {"Authorization": f"Bearer {self.api_key}"}
 

@@ -1,6 +1,8 @@
-from dataclasses import dataclass, asdict, field
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Optional
+
 from tabulate import tabulate
 
 
@@ -25,7 +27,7 @@ class Task:
     task: str
     status: Status = Status.TODO
     created_at: datetime = field(default_factory=datetime.now)
-    updated_at: Optional[datetime] = None
+    updated_at: datetime | None = None
 
     def mark_updated(self):
         self.updated_at = datetime.now()
@@ -52,6 +54,6 @@ class Task:
         if not self.id > 0:
             raise ValueError("ID must be greater than 0")
         if not isinstance(self.id, int):
-            raise ValueError("ID must be an integer")
+            raise TypeError("ID must be an integer")
         if not isinstance(self.task, str):
-            raise ValueError("Task must be a string")
+            raise TypeError("Task must be a string")

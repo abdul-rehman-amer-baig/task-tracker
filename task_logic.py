@@ -1,9 +1,10 @@
+from typing import Callable
+
 from model import Status, Task
-from typing import List, Callable
 
 
 # * CORE LOGIC FUNCTIONS
-def create_task(tasks: List[Task], task_text: str) -> Task:
+def create_task(tasks: list[Task], task_text: str) -> Task:
     new_task = Task(
         id=len(tasks) + 1 if tasks else 1,
         task=task_text,
@@ -13,7 +14,7 @@ def create_task(tasks: List[Task], task_text: str) -> Task:
 
 
 def update_task_generic(
-    tasks: List[Task], task_id: int, update_fn: Callable[[Task], None]
+    tasks: list[Task], task_id: int, update_fn: Callable[[Task], None]
 ) -> Task:
     for task in tasks:
         if task.id == task_id:
@@ -24,7 +25,7 @@ def update_task_generic(
     raise ValueError(f"Task with ID {task_id} not found")
 
 
-def delete_task_by_id(tasks: List[Task], task_id: int) -> Task:
+def delete_task_by_id(tasks: list[Task], task_id: int) -> Task:
     for i, task in enumerate(tasks):
         if task.id == task_id:
             return tasks.pop(i)
@@ -38,7 +39,7 @@ def filter_task_by_status(tasks: list[Task], status: Status):
 
 # * APLICATION SERVICES (ORCHESTRATION)
 def add_task(
-    tasks: list[Task], task_text: str, save_fn: Callable[[List[Task]], None]
+    tasks: list[Task], task_text: str, save_fn: Callable[[list[Task]], None]
 ) -> Task:
     task = create_task(tasks, task_text)
     save_fn(tasks)
@@ -49,7 +50,7 @@ def update_task(
     tasks: list[Task],
     task_id: int,
     task_text: str,
-    save_fn: Callable[[List[Task]], None],
+    save_fn: Callable[[list[Task]], None],
 ) -> Task:
     task = update_task_generic(
         tasks,
@@ -61,7 +62,7 @@ def update_task(
 
 
 def mark_in_progress_task(
-    tasks: list[Task], task_id: int, save_fn: Callable[[List[Task]], None]
+    tasks: list[Task], task_id: int, save_fn: Callable[[list[Task]], None]
 ) -> Task:
     task = update_task_generic(
         tasks,
@@ -73,7 +74,7 @@ def mark_in_progress_task(
 
 
 def mark_done_task(
-    tasks: list[Task], task_id: int, save_fn: Callable[[List[Task]], None]
+    tasks: list[Task], task_id: int, save_fn: Callable[[list[Task]], None]
 ) -> Task:
     task = update_task_generic(
         tasks,
@@ -85,7 +86,7 @@ def mark_done_task(
 
 
 def delete_task(
-    tasks: list[Task], task_id: int, save_fn: Callable[[List[Task]], None]
+    tasks: list[Task], task_id: int, save_fn: Callable[[list[Task]], None]
 ) -> Task:
     task = delete_task_by_id(tasks, task_id)
     save_fn(tasks)
@@ -93,9 +94,9 @@ def delete_task(
 
 
 def list_tasks(
-    tasks: List[Task],
+    tasks: list[Task],
     status: Status = None,
-) -> List[Task]:
+) -> list[Task]:
     if status is None:
         return tasks
     filtered_tasks = filter_task_by_status(tasks, status)

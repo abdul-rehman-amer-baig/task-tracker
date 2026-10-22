@@ -1,6 +1,7 @@
 import json
 import os
 from typing import Any
+
 from model import Task
 
 
@@ -16,7 +17,7 @@ def load_json_file(data_file: str, default: Any = None) -> Any:
     try:
         with open(data_file, "r", encoding="utf-8") as file:
             return json.load(file)
-    except (json.JSONDecodeError, IOError):
+    except (OSError, json.JSONDecodeError):
         return default
 
 
@@ -24,7 +25,7 @@ def save_json_file(data: Any, data_file: str, indent: int = 2) -> None:
     try:
         with open(data_file, "w", encoding="utf-8") as file:
             json.dump(data, file, indent=indent)
-    except IOError as e:
+    except OSError as e:
         print(f"Warning: Could not save to {data_file}: {e}")
 
 

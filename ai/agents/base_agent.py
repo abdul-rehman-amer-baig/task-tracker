@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict
+
+from ai.prompt_loader import load_prompt
 from ai.providers.base_provider import AIProvider
 from ai.providers.provider_factory import AIProviderFactory
-from ai.prompt_loader import load_prompt
 
 
 class BaseAgent(ABC):
-    def __init__(self, provider: Optional[AIProvider] = None):
+    def __init__(self, provider: AIProvider | None = None):
         self.provider = provider or AIProviderFactory.get_default_provider()
 
     @property
@@ -24,7 +26,7 @@ class BaseAgent(ABC):
     def _call_provider(
         self,
         user_prompt: str,
-        conversation_history: Optional[List[Dict]] = None,
+        conversation_history: list[dict] | None = None,
     ) -> str:
         system_prompt = self._get_system_prompt()
 
