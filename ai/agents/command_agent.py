@@ -1,17 +1,18 @@
-from dataclasses import fields
-from ai.schema import (
-    AddCommand,
-    UpdateCommand,
-    DeleteCommand,
-    MarkDoneCommand,
-    MarkInProgressCommand,
-    ListCommand,
-    ConversationResponse,
-    AIResponse,
-)
 import json
 import re
+from dataclasses import fields
+
 from ai.agents.base_agent import BaseAgent
+from ai.schema import (
+    AddCommand,
+    AIResponse,
+    ConversationResponse,
+    DeleteCommand,
+    ListCommand,
+    MarkDoneCommand,
+    MarkInProgressCommand,
+    UpdateCommand,
+)
 
 
 class CommandAgent(BaseAgent):
@@ -29,7 +30,7 @@ class CommandAgent(BaseAgent):
             parsed = json.loads(json_text)
         except json.JSONDecodeError as e:
             raise RuntimeError(
-                f"Command agent returned invalid JSON: {repr(response[:100])}. "
+                f"Command agent returned invalid JSON: {response[:100]!r}. "
                 f"Error: {e}. "
                 "The free Mistral model may not be following instructions properly. "
                 "Consider using a better model in your .env file (e.g., 'openai/gpt-3.5-turbo')."

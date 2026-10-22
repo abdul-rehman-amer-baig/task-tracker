@@ -1,7 +1,8 @@
 import json
 import re
-from ai.schema.intent_schemas import IntentResponse
+
 from ai.agents.base_agent import BaseAgent
+from ai.schema.intent_schemas import IntentResponse
 
 
 class MasterAgent(BaseAgent):
@@ -19,7 +20,7 @@ class MasterAgent(BaseAgent):
             parsed = json.loads(json_text)
         except json.JSONDecodeError as e:
             raise RuntimeError(
-                f"Master agent returned invalid JSON: {repr(response[:100])}. Error: {e}"
+                f"Master agent returned invalid JSON: {response[:100]!r}. Error: {e}"
             )
 
         return self.process_response(response, human_text=human_text, parsed=parsed)

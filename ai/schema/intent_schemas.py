@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Literal, Optional
+from typing import Literal
 
 
 @dataclass
 class IntentResponse:
     type: Literal["command", "computation", "conversation"]
-    question: Optional[str] = None
-    command: Optional[str] = None
+    question: str | None = None
+    command: str | None = None
 
     def __post_init__(self):
         if self.type == "computation":

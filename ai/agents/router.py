@@ -1,19 +1,20 @@
 """Router - Routes to appropriate agent based on intent"""
 
-from typing import Optional, List, Dict
-from ai.providers.base_provider import AIProvider
-from ai.schema.intent_schemas import IntentResponse
-from ai.schema.command_schemas import AIResponse, ConversationResponse
-from ai.validator import safe_evaluate, ReadOnlyValidationError
+from __future__ import annotations
+
 from ai.agents.agent_factory import AgentFactory
+from ai.providers.base_provider import AIProvider
+from ai.schema.command_schemas import AIResponse, ConversationResponse
+from ai.schema.intent_schemas import IntentResponse
+from ai.validator import ReadOnlyValidationError, safe_evaluate
 
 
 def route_to_agent(
     intent: IntentResponse,
     human_text: str,
-    tasks: list = None,
-    provider: Optional[AIProvider] = None,
-    conversation_history: Optional[List[Dict]] = None,
+    tasks: list | None = None,
+    provider: AIProvider | None = None,
+    conversation_history: list[dict] | None = None,
 ) -> AIResponse:
     if intent.type == "command":
         command_agent = AgentFactory.create_command_agent(provider)
@@ -49,7 +50,7 @@ def route_to_agent(
             message = f"The answer is: {result}"
         except ReadOnlyValidationError as e:
             message = f"Error: Code validation failed - {e}"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - generated code can raise anything; the CLI must not crash
             message = f"Error executing code: {e}"
 
         return ConversationResponse(type="conversation", message=message)

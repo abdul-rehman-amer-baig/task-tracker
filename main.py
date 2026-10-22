@@ -1,24 +1,26 @@
 import os
+
 from dotenv import load_dotenv
+
+from ai.parser import parse_human_input
 from cli import parse_args
+from model import Status
+from presentation import format_tasks_table
 from storage import (
-    load_json,
-    save_json,
-    load_conversation_history,
-    save_conversation_history,
     add_to_history,
+    load_conversation_history,
+    load_json,
+    save_conversation_history,
+    save_json,
 )
 from task_logic import (
     add_task,
-    update_task,
     delete_task,
-    mark_in_progress_task,
-    mark_done_task,
     list_tasks,
+    mark_done_task,
+    mark_in_progress_task,
+    update_task,
 )
-from presentation import format_tasks_table
-from model import Status
-from ai.parser import parse_human_input
 
 load_dotenv()
 
@@ -72,7 +74,11 @@ if __name__ == "__main__":
 
     try:
         if args.command == "ai":
-            history_enabled = os.getenv("ENABLE_CONVERSATION_HISTORY", True)
+            # os.getenv always returns a string, so "false" was truthy and the
+            # variable could never actually turn history off
+            history_enabled = os.getenv(
+                "ENABLE_CONVERSATION_HISTORY", "true"
+            ).strip().lower() not in ("false", "0", "no", "")
 
             conversation_history = None
             if history_enabled:

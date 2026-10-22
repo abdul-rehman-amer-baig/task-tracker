@@ -1,9 +1,9 @@
-from model import Task
-from typing import List
 from tabulate import tabulate
 
+from model import Task
 
-def format_tasks_table(tasks: List[Task]) -> str:
+
+def format_tasks_table(tasks: list[Task]) -> str:
     if not tasks:
         return "No tasks found."
 

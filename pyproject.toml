@@ -1,0 +1,6 @@
+[tool.ruff]
+# The lowest Python this project runs on. Without this, Ruff assumes the latest
+# version and asks for syntax that fails at runtime here — e.g. PEP 604 unions
+# (`int | None`), which need 3.10 unless `from __future__ import annotations`
+# is in effect.
+target-version = "py39"

@@ -18,7 +18,9 @@ jobs:
           python-version: "3.11"
       - run: |
           python -m pip install --upgrade pip
-          pip install ruff
+          # Pinned: an unpinned install means a new Ruff release can turn this
+          # job red without any code change, which is what happened before.
+          pip install ruff==0.17.2
       - run: |
           ruff check .
           ruff format --check --diff

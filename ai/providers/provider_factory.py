@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import os
-from typing import Optional
+
 from ai.providers.base_provider import AIProvider
 from ai.providers.openrouter_provider import OpenRouterProvider
 
 
 class AIProviderFactory:
     @staticmethod
-    def create_provider(provider_name: Optional[str] = None) -> AIProvider:
+    def create_provider(provider_name: str | None = None) -> AIProvider:
         if provider_name is None:
             provider_name = os.getenv("AI_PROVIDER", "openrouter").lower()
 

@@ -1,12 +1,13 @@
 import pytest
-from model import Task, Status
+
+from model import Status, Task
 from task_logic import (
     add_task,
-    update_task,
     delete_task,
-    mark_in_progress_task,
-    mark_done_task,
     list_tasks,
+    mark_done_task,
+    mark_in_progress_task,
+    update_task,
 )
 
 

@@ -1,8 +1,10 @@
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
+
 from ai.parser import parse_human_input
 from ai.providers.base_provider import AIProvider
-from ai.schema import AddCommand, ListCommand, ConversationResponse
+from ai.schema import AddCommand, ConversationResponse, ListCommand
 
 
 @pytest.fixture
